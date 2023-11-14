@@ -1,3 +1,7 @@
+Info about repository
+========
+This repository contains examples of using various shaders in minetest. Nothing more than a demonstration of the integration of shaders that interest me into the game.
+
 Minetest
 ========
 
