@@ -99,6 +99,21 @@ public:
 		return m_camera_position;
 	}
 
+	inline v2f getCameraVelocity() 
+	{
+		auto currentTimePoint = std::chrono::high_resolution_clock::now();
+    	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTimePoint.time_since_epoch());
+    	long long currentTime = duration.count();
+
+		if (currentTime - m_last_cam_pos_update > 80000) {
+			m_last_cam_pos_update = currentTime;
+			m_old_cam_pos = m_last_cam_pos;
+		}
+		v2f resultPos = m_last_cam_pos - m_old_cam_pos;
+		
+		return resultPos;
+	}
+
 	// Returns the absolute position of the head SceneNode in the world
 	inline v3f getHeadPosition() const
 	{
@@ -208,6 +223,11 @@ public:
 	void drawNametags();
 
 	inline void addArmInertia(f32 player_yaw);
+	void updateCameraVelocity(f32 playerYaw, f32 deltaTime, f32& gapX, f32& gapY);
+    void updateArmPosition(f32 accelerationFactor, f32 playerYaw, f32 gapX, f32 gapY, f32 amplitudeFactorX, f32 amplitudeFactorY);
+    void updateArmPositionX(f32 accelerationFactor, f32 playerYaw, f32 gapX, f32 amplitudeFactorX);
+    void updateArmPositionY(f32 accelerationFactor, f32 gapY, f32 amplitudeFactorY);
+    void resetArmPosition(f32 decelerationFactorX, f32 decelerationFactorY, f32 gapX, f32 gapY, f32 minGapX, f32 minGapY, f32 maxCamVel);
 
 private:
 	// Use getFrustumCuller().
@@ -252,6 +272,11 @@ private:
 	v2f m_cam_vel;
 	v2f m_cam_vel_old;
 	v2f m_last_cam_pos;
+
+	// TODO: replace to builtin camera velocity vars
+	v2f m_old_cam_pos;
+	long long m_last_cam_pos_update = 0;
+	// END TODO
 
 	// Field of view and aspect ratio stuff
 	f32 m_aspect = 1.0f;

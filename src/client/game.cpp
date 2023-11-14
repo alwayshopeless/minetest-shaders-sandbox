@@ -405,6 +405,9 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	float m_bloom_radius;
 	CachedPixelShaderSetting<float> m_saturation_pixel;
 
+	// motion blur uniforms
+	CachedPixelShaderSetting<float, 2> m_camera_velocity_pixel;
+	//end
 public:
 	void onSettingsChange(const std::string &name)
 	{
@@ -461,7 +464,11 @@ public:
 		m_bloom_intensity_pixel("bloomIntensity"),
 		m_bloom_strength_pixel("bloomStrength"),
 		m_bloom_radius_pixel("bloomRadius"),
-		m_saturation_pixel("saturation")
+		m_saturation_pixel("saturation"),
+		
+		//motion blur start
+		m_camera_velocity_pixel("cameraVelocity")
+		//motion blur end
 	{
 		g_settings->registerChangedCallback("enable_fog", settingsCallback, this);
 		g_settings->registerChangedCallback("exposure_compensation", settingsCallback, this);
@@ -534,6 +541,15 @@ public:
 		m_eye_position_pixel.set(eye_position_array, services);
 		m_eye_position_vertex.set(eye_position_array, services);
 
+
+		// START motion blur vars
+		v2f cameraVelocity = m_client->getCamera()->getCameraVelocity();
+		float cam_velocity_array[2] = {cameraVelocity.X, cameraVelocity.Y};
+		m_camera_velocity_pixel.set(cam_velocity_array, services);
+
+		// END motion blur vars
+	
+	
 		if (m_client->getMinimap()) {
 			float minimap_yaw_array[3];
 			v3f minimap_yaw = m_client->getMinimap()->getYawVec();
