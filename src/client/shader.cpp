@@ -228,6 +228,7 @@ class MainShaderConstantSetter : public IShaderConstantSetter
 	CachedPixelShaderSetting<f32> m_perspective_bias1_pixel;
 	CachedVertexShaderSetting<f32> m_perspective_zbias_vertex;
 	CachedPixelShaderSetting<f32> m_perspective_zbias_pixel;
+	CachedPixelShaderSetting<f32> m_time;
 
 	// Modelview matrix
 	CachedVertexShaderSetting<float, 16> m_world_view;
@@ -254,11 +255,20 @@ public:
 		, m_perspective_zbias_pixel("zPerspectiveBias")
 		, m_world_view("mWorldView")
 		, m_texture("mTexture")
+		, m_time("time") // current timestamp in next fromat 1699933868.111 
 	{}
 	~MainShaderConstantSetter() = default;
 
 	virtual void onSetConstants(video::IMaterialRendererServices *services) override
 	{
+		auto currentTimePoint = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTimePoint.time_since_epoch());
+		long long currentTime = duration.count();
+		// TODO: fix time var
+		float timeSeconds = static_cast<double>(currentTime - 1699750000000000);
+		m_time.set(&timeSeconds, services);
+
+
 		video::IVideoDriver *driver = services->getVideoDriver();
 		sanity_check(driver);
 
