@@ -1,6 +1,10 @@
 #define rendered texture0
 #define bloom texture1
 
+// START unifroms for motion blur
+uniform vec2 cameraVelocity;
+// END unifroms for motion blur
+
 struct ExposureParams {
 	float compensationFactor;
 };
@@ -79,6 +83,63 @@ vec3 applySaturation(vec3 color, float factor)
 }
 #endif
 
+
+// START functions for motion blur
+float mapValue(float value, float minValue, float maxValue, float newMin, float newMax) {
+    return (value - minValue) / (maxValue - minValue) * (newMax - newMin) + newMin;
+}
+
+
+vec4 motionBlur(vec2 realPos, vec4 realCol, vec2 cameraVelocity){
+	float Pi = 6.28318530718;
+	
+
+    // GAUSSIAN BLUR SETTINGS {{{
+    float Directions = 25.0; // BLUR DIRECTIONS (Default 16.0 - More is better but slower)
+    float Quality = 16; // BLUR QUALITY (Default 4.0 - More is better but slower)
+    float Size = 0.3; // BLUR SIZE (Radius)
+    // GAUSSIAN BLUR SETTINGS }}}
+
+    float summaryBrightness = realCol.r + realCol.b + realCol.g;  
+	vec2 Radius = Size/vec2(1,1);
+	vec4 newCol = realCol;
+    for( float d=0.0; d<Pi; d+=Pi/Directions)
+    {
+		for(float i=0.5/Quality; i<=0.5; i+=0.5/Quality)
+        {
+			// vec2 tmpPos = realPos+vec2(cos(d),sin(d))*Radius*i;
+            			vec2 tmpPos = realPos+vec2(clamp(cameraVelocity.x* 2, -0.1,0.1),clamp(cameraVelocity.y * 2, -0.1,0.1))*Radius*i;
+			// tmpPos.t = realPos.t;
+                // if (tmpPos.x < 0 || tmpPos.x > 1 || tmpPos.y < 0 || tmpPos.y > 1 ) {
+                    // newCol+= realCol;		                    
+                // } else {
+					vec4 additionalCol = texture2D( texture0, tmpPos); 
+					float summaryBrightness = additionalCol.r + additionalCol.b + additionalCol.g;  
+					if (summaryBrightness > 2) {
+						additionalCol += 0.3;
+					}
+                    newCol+= additionalCol;		
+                // }
+
+        }
+    }
+    
+    // Output to screen
+    newCol /= Quality * Directions - 15.0;
+
+    float coeff = 0.9;
+    // if (summaryBrightness > 1.1) {
+    //     newCol+= 0.8;
+    // increase brightness, if it freater then step
+    // }
+    // return newCol;
+
+	return newCol * coeff + realCol  * (1 - coeff);
+}
+// END functions for motion blur
+
+
+
 void main(void)
 {
 	vec2 uv = varTexCoord.st;
@@ -124,6 +185,11 @@ void main(void)
 
 	// return to sRGB colorspace (approximate)
 	color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
+
+	if (true) {
+		color = motionBlur(uv, color, cameraVelocity);
+	}
+
 
 	gl_FragColor = vec4(color.rgb, 1.0); // force full alpha to avoid holes in the image.
 }
