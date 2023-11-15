@@ -5,8 +5,10 @@ This repository contains examples of using various shaders in minetest. Nothing 
 Demos
 ========
 Fisheye: https://www.youtube.com/watch?v=g3nLCSkNoIY
+
 Raindrops: https://www.youtube.com/watch?v=MEuirjrc0xw
-Motion blur: https://www.youtube.com/watch?v=Ij-X7uB6l7I
+
+Motion blur: https://www.youtube.com/watch?v=Ij-X7uB6l7I (has some changes, the final version is different from the demo)
 
 Minetest
 ========
