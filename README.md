@@ -1,3 +1,13 @@
+Info about repository
+========
+This repository contains examples of using various shaders in minetest. Nothing more than a demonstration of the integration of shaders that interest me into the game.
+
+Demos
+========
+Fisheye: https://www.youtube.com/watch?v=g3nLCSkNoIY
+Raindrops: https://www.youtube.com/watch?v=MEuirjrc0xw
+Motion blur: https://www.youtube.com/watch?v=Ij-X7uB6l7I
+
 Minetest
 ========
 
