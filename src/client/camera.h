@@ -104,8 +104,8 @@ public:
 		auto currentTimePoint = std::chrono::high_resolution_clock::now();
     	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(currentTimePoint.time_since_epoch());
     	long long currentTime = duration.count();
-
-		if (currentTime - m_last_cam_pos_update > 80000) {
+		// TODO: add a smooth decrease in blur when stopping camera
+		if (currentTime - m_last_cam_pos_update > 180000) {
 			m_last_cam_pos_update = currentTime;
 			m_old_cam_pos = m_last_cam_pos;
 		}
