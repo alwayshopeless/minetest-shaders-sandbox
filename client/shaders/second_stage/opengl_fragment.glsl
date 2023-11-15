@@ -125,5 +125,39 @@ void main(void)
 	// return to sRGB colorspace (approximate)
 	color.rgb = pow(color.rgb, vec3(1.0 / 2.2));
 
+
+	vec2 p = varTexCoord.xy;
+	float screenProp = 1;
+	vec2 m = vec2(0.5, 0.5 / screenProp);//center coords
+	vec2 ddda = p - m;//vector from center to current fragment
+	float r = sqrt(dot(ddda, ddda)); // distance of pixel from center
+
+	float power = ( 2.0 * (3.141592 *1) / (2.0 * sqrt(dot(m, m))) ) * (0.8 - 0.5);//amount of effect
+
+	float bind;//radius of 1:1 effect
+	if (power > 0.0)
+	{
+		bind = sqrt(dot(m, m));
+	} else if (screenProp < 1.0)
+	{
+		bind = m.x;
+	} else {
+		bind = m.y;
+	}
+
+
+	//Weird formulas
+	uv = vec2(0,0);
+	if (power > 0.0)//fisheye
+		uv = m + normalize(ddda) * tan(r * power) * bind / tan( bind * power);
+	else if (power < 0.0)//antifisheye
+		uv = m + normalize(ddda) * atan(r * -power * 10.0) * bind / atan(-power * bind * 10.0);
+	else uv = p;//no effect for power = 1.0
+	// uv = p;
+
+	color = vec4(texture2D(texture0, vec2(uv.x, uv.y)).xyz, 1.0);//Second part of cheat
+
+
+
 	gl_FragColor = vec4(color.rgb, 1.0); // force full alpha to avoid holes in the image.
 }
