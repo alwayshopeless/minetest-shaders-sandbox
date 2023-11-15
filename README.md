@@ -2,6 +2,8 @@ Info about repository
 ========
 This repository contains examples of using various shaders in minetest. Nothing more than a demonstration of the integration of shaders that interest me into the game.
 
+Each shader is placed on a separate branch and requires recompilation(motion-blur, fisheye, raindrops)
+
 Demos
 ========
 Fisheye: https://www.youtube.com/watch?v=g3nLCSkNoIY
