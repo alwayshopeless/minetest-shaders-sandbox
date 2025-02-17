@@ -27,7 +27,6 @@ namespace irr
 {
 namespace video
 {
-
 struct VertexAttribute
 {
 	enum Mode : u8
@@ -59,6 +58,7 @@ static const VertexType vtStandard = {
 				{EVA_POSITION, 3, GL_FLOAT, VertexAttribute::Mode::Regular, offsetof(S3DVertex, Pos)},
 				{EVA_NORMAL, 3, GL_FLOAT, VertexAttribute::Mode::Regular, offsetof(S3DVertex, Normal)},
 				{EVA_COLOR, 4, GL_UNSIGNED_BYTE, VertexAttribute::Mode::Normalized, offsetof(S3DVertex, Color)},
+        		{EVA_AMBIENT_COLOR, 4, GL_UNSIGNED_BYTE, VertexAttribute::Mode::Normalized, offsetof(S3DVertex, AmbientColor)},
 				{EVA_TCOORD0, 2, GL_FLOAT, VertexAttribute::Mode::Regular, offsetof(S3DVertex, TCoords)},
 		},
 };

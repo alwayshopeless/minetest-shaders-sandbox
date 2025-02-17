@@ -573,6 +573,7 @@ ShaderInfo ShaderSource::generateShader(const std::string &name,
 
 			attribute highp vec4 inVertexPosition;
 			attribute lowp vec4 inVertexColor;
+			attribute lowp vec4 inVertexAmbientColor;
 			attribute mediump vec2 inTexCoord0;
 			attribute mediump vec3 inVertexNormal;
 			attribute mediump vec4 inVertexTangent;

@@ -43,17 +43,25 @@ struct S3DVertex
 {
 	//! default constructor
 	constexpr S3DVertex() :
-			Color(0xffffffff) {}
+			Color(0xffffffff), AmbientColor(0xffffffff) {}
 
 	//! constructor
 	constexpr S3DVertex(f32 x, f32 y, f32 z, f32 nx, f32 ny, f32 nz, SColor c, f32 tu, f32 tv) :
-			Pos(x, y, z), Normal(nx, ny, nz), Color(c), TCoords(tu, tv) {}
+			Pos(x, y, z), Normal(nx, ny, nz), Color(c), TCoords(tu, tv), AmbientColor(0xffffffff) {}
 
 	//! constructor
 	constexpr S3DVertex(const core::vector3df &pos, const core::vector3df &normal,
 			SColor color, const core::vector2df &tcoords) :
 			Pos(pos),
-			Normal(normal), Color(color), TCoords(tcoords) {}
+			Normal(normal), Color(color), TCoords(tcoords), AmbientColor(0xffffffff) {}
+
+	//! constructor
+	constexpr S3DVertex(const core::vector3df &pos, const core::vector3df &normal,
+			SColor color, const core::vector2df &tcoords, SColor ambColor) :
+			Pos(pos),
+			Normal(normal), Color(color), TCoords(tcoords), AmbientColor(ambColor) {}
+
+
 
 	//! Position
 	core::vector3df Pos;
@@ -63,6 +71,8 @@ struct S3DVertex
 
 	//! Color
 	SColor Color;
+		//! Ambient Occlusion
+	SColor AmbientColor;
 
 	//! Texture coordinates
 	core::vector2df TCoords;
@@ -70,13 +80,13 @@ struct S3DVertex
 	constexpr bool operator==(const S3DVertex &other) const
 	{
 		return ((Pos == other.Pos) && (Normal == other.Normal) &&
-				(Color == other.Color) && (TCoords == other.TCoords));
+				(Color == other.Color) && (AmbientColor == other.AmbientColor) && (TCoords == other.TCoords));
 	}
 
 	constexpr bool operator!=(const S3DVertex &other) const
 	{
 		return ((Pos != other.Pos) || (Normal != other.Normal) ||
-				(Color != other.Color) || (TCoords != other.TCoords));
+				(Color != other.Color) || (AmbientColor != other.AmbientColor) || (TCoords != other.TCoords));
 	}
 
 	constexpr bool operator<(const S3DVertex &other) const
@@ -84,7 +94,8 @@ struct S3DVertex
 		return ((Pos < other.Pos) ||
 				((Pos == other.Pos) && (Normal < other.Normal)) ||
 				((Pos == other.Pos) && (Normal == other.Normal) && (Color < other.Color)) ||
-				((Pos == other.Pos) && (Normal == other.Normal) && (Color == other.Color) && (TCoords < other.TCoords)));
+				((Pos == other.Pos) && (Normal == other.Normal) && (Color == other.Color) && (AmbientColor < other.AmbientColor)) ||
+				((Pos == other.Pos) && (Normal == other.Normal) && (Color == other.Color) && (AmbientColor == other.AmbientColor) && (TCoords < other.TCoords)));
 	}
 
 	//! Get type of the class
@@ -97,10 +108,12 @@ struct S3DVertex
 	S3DVertex getInterpolated(const S3DVertex &other, f32 d)
 	{
 		d = core::clamp(d, 0.0f, 1.0f);
-		return S3DVertex(Pos.getInterpolated(other.Pos, d),
+		S3DVertex tmp = S3DVertex(Pos.getInterpolated(other.Pos, d),
 				Normal.getInterpolated(other.Normal, d),
 				Color.getInterpolated(other.Color, d),
 				TCoords.getInterpolated(other.TCoords, d));
+				tmp.AmbientColor = AmbientColor.getInterpolated(other.AmbientColor, d);
+		return tmp;
 	}
 };
 
