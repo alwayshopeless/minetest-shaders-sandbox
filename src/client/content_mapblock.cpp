@@ -242,7 +242,10 @@ void MapblockMeshGenerator::getSmoothLightFrame()
 	for (int k = 0; k < 8; ++k)
 		cur_node.lframe.sunlight[k] = false;
 	for (int k = 0; k < 8; ++k) {
-		LightPair light(getSmoothLightTransparent(blockpos_nodes + cur_node.p, light_dirs[k], data));
+		u16 lightValue, aoValue;
+		std::tie(lightValue, aoValue) = getSmoothLightTransparent(blockpos_nodes + cur_node.p, light_dirs[k], data);
+
+		LightPair light(lightValue);
 		cur_node.lframe.lightsDay[k] = light.lightDay;
 		cur_node.lframe.lightsNight[k] = light.lightNight;
 		// If there is direct sunlight and no ambient occlusion at some corner,
@@ -392,6 +395,14 @@ void MapblockMeshGenerator::drawAutoLightedCuboid(aabb3f box,
 	}
 }
 
+u16 SColorToA1R5G5B5(video::SColor color) {
+	u8 a = color.getAlpha() > 127 ? 1 : 0;  // 1 бит альфа (0 или 1)
+	u8 r = (color.getRed()   * 31 + 127) / 255;  // 5 бит красного
+	u8 g = (color.getGreen() * 31 + 127) / 255;  // 5 бит зеленого
+	u8 b = (color.getBlue()  * 31 + 127) / 255;  // 5 бит синего
+	return (a << 15) | (r << 10) | (g << 5) | b;
+}
+
 void MapblockMeshGenerator::drawSolidNode()
 {
 	u8 faces = 0; // k-th bit will be set if k-th face is to be drawn.
@@ -448,25 +459,46 @@ void MapblockMeshGenerator::drawSolidNode()
 	generateCuboidTextureCoords(box, texture_coord_buf);
 	if (data->m_smooth_lighting) {
 		LightPair lights[6][4];
+		LightPair lights_ao[6][4];
 		for (int face = 0; face < 6; ++face) {
 			if (mask & (1 << face))
 				continue;
 			for (int k = 0; k < 4; k++) {
 				v3s16 corner = light_dirs[light_indices[face][k]];
-				lights[face][k] = LightPair(getSmoothLightSolid(
-						blockpos_nodes + cur_node.p, tile_dirs[face], corner, data));
+
+				u16 light, ao;
+				std::tie(light, ao) = getSmoothLightSolid(
+					blockpos_nodes + cur_node.p, tile_dirs[face], corner, data);
+
+				lights[face][k] = LightPair(light);
+				lights_ao[face][k] = LightPair(ao);
+
 			}
 		}
 
 		drawCuboid(box, tiles, 6, texture_coord_buf, mask, [&] (int face, video::S3DVertex vertices[4]) {
 			auto final_lights = lights[face];
+			auto final_lights_ao = lights_ao[face];
 			for (int j = 0; j < 4; j++) {
 				video::S3DVertex &vertex = vertices[j];
-				vertex.Color = encode_light(final_lights[j], cur_node.f->light_source);
-				if (!cur_node.f->light_source)
-					applyFacesShading(vertex.Color, vertex.Normal);
+//				vertex.Color = encode_light(final_lights[j], cur_node.f->light_source);
+
+//				vertex.Color = encode_light_ao(SColorToA1R5G5B5(cur_node.lcolor), 0xff, 255);
+//				vertex.Color = SColorToA1R5G5B5(cur_node.lcolor);
+				vertex.Color = 0xFFFFFFFF;
+
+
+//				float tCol = tempCol.getRed();
+//				vertex.Color = cur_node.lcolor;
+//				vertex.AmbientColor = encode_light_ao(final_lights_ao[j], tCol, cur_node.f->light_source);
+				video::SColor tempCol = encode_light(final_lights[j], cur_node.f->light_source);
+				vertex.AmbientColor =  encode_light_ao(final_lights_ao[j], tempCol, cur_node.f->light_source);
+//				vertex.AmbientColor = tempCol;
+//				if (!cur_node.f->light_source)
+//					applyFacesShading(vertex.Color, vertex.Normal);
 			}
 			if (lightDiff(final_lights[1], final_lights[3]) < lightDiff(final_lights[0], final_lights[2]))
+				if (lightDiff(final_lights_ao[1], final_lights_ao[3]) < lightDiff(final_lights_ao[0], final_lights_ao[2]))
 				return QuadDiagonal::Diag13;
 			return QuadDiagonal::Diag02;
 		});

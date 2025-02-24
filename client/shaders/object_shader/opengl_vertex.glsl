@@ -111,6 +111,20 @@ void main(void)
 
 	vec4 color = inVertexColor;
 
+	vec3 normalAo = vec3(1.0, 1.0, 1.0);
+
+	// Определяем направление относительно оси Y (север/юг)
+	float northSouthFactor = clamp(vNormal.z, -1.0, 1.0);
+	// Определяем направление относительно оси X (восток/запад)
+	float eastWestFactor = clamp(vNormal.x, -1.0, 1.0);
+
+	// Корректируем затемнение в зависимости от направления
+	normalAo.rgb -= 0.02 * (northSouthFactor * 10.0); // Север-Юг
+	normalAo.rgb -= 0.025 * (eastWestFactor * 10.0);  // Восток-Запад
+
+	// Применяем затемнение
+	color.rgb *= normalAo.rgb;
+
 	color *= materialColor;
 
 	// The alpha gives the ratio of sunlight in the incoming light.

@@ -150,8 +150,9 @@ u16 getFaceLight(MapNode n, MapNode n2, const NodeDefManager *ndef)
 /*
 	Calculate smooth lighting at the XYZ- corner of p.
 	Both light banks
+	Returns tuple with first — common shading factor, second — Ambient Occlussion factor.
 */
-static u16 getSmoothLightCombined(const v3s16 &p,
+static std::tuple<u16, u16> getSmoothLightCombined(const v3s16 &p,
 	const std::array<v3s16,8> &dirs, MeshMakeData *data)
 {
 	const NodeDefManager *ndef = data->m_nodedef;
@@ -171,13 +172,13 @@ static u16 getSmoothLightCombined(const v3s16 &p,
 		MapNode n = data->m_vmanip.getNodeNoExNoEmerge(p + dirs[i]);
 		if (n.getContent() == CONTENT_IGNORE)
 			return true;
-		const ContentFeatures &f = ndef->get(n);
-		if (f.light_source > light_source_max)
-			light_source_max = f.light_source;
+		const ContentFeatures &content = ndef->get(n);
+		if (content.light_source > light_source_max)
+			light_source_max = content.light_source;
 		// Check f.solidness because fast-style leaves look better this way
-		if (f.param_type == CPT_LIGHT && f.solidness != 2) {
-			u8 light_level_day = n.getLight(LIGHTBANK_DAY, f.getLightingFlags());
-			u8 light_level_night = n.getLight(LIGHTBANK_NIGHT, f.getLightingFlags());
+		if (content.param_type == CPT_LIGHT && content.solidness != 2) {
+			u8 light_level_day = n.getLight(LIGHTBANK_DAY, content.getLightingFlags());
+			u8 light_level_night = n.getLight(LIGHTBANK_NIGHT, content.getLightingFlags());
 			if (light_level_day == LIGHT_SUN)
 				direct_sunlight = true;
 			light_day += decode_light(light_level_day);
@@ -186,7 +187,7 @@ static u16 getSmoothLightCombined(const v3s16 &p,
 		} else {
 			ambient_occlusion++;
 		}
-		return f.light_propagates;
+		return content.light_propagates;
 	};
 
 	bool obstructed[4] = { true, true, true, true };
@@ -230,6 +231,11 @@ static u16 getSmoothLightCombined(const v3s16 &p,
 		skip_ambient_occlusion_night = true;
 	}
 
+	u16 light_day_ao = 0xFF;
+	u16 light_night_ao = 0;
+	skip_ambient_occlusion_day = false;
+	skip_ambient_occlusion_night = false;
+
 	if (ambient_occlusion > 4) {
 		static thread_local const float ao_gamma = rangelim(
 			g_settings->getFloat("ambient_occlusion_gamma"), 0.25, 4.0);
@@ -245,14 +251,13 @@ static u16 getSmoothLightCombined(const v3s16 &p,
 		ambient_occlusion -= 5;
 
 		if (!skip_ambient_occlusion_day)
-			light_day = rangelim(core::round32(
-					light_day * light_amount[ambient_occlusion]), 0, 255);
+			light_day_ao = rangelim(core::round32(
+					light_day_ao * light_amount[ambient_occlusion]), 0, 255);
 		if (!skip_ambient_occlusion_night)
-			light_night = rangelim(core::round32(
-					light_night * light_amount[ambient_occlusion]), 0, 255);
+			light_night_ao = rangelim(core::round32(
+					light_night_ao * light_amount[ambient_occlusion]), 0, 255);
 	}
-
-	return light_day | (light_night << 8);
+	return std::make_tuple(light_day | (light_night << 8), light_day_ao | (light_night_ao << 8));
 }
 
 /*
@@ -260,7 +265,7 @@ static u16 getSmoothLightCombined(const v3s16 &p,
 	Both light banks.
 	Node at p is solid, and thus the lighting is face-dependent.
 */
-u16 getSmoothLightSolid(const v3s16 &p, const v3s16 &face_dir, const v3s16 &corner, MeshMakeData *data)
+std::tuple<u16, u16> getSmoothLightSolid(const v3s16 &p, const v3s16 &face_dir, const v3s16 &corner, MeshMakeData *data)
 {
 	return getSmoothLightTransparent(p + face_dir, corner - 2 * face_dir, data);
 }
@@ -270,7 +275,7 @@ u16 getSmoothLightSolid(const v3s16 &p, const v3s16 &face_dir, const v3s16 &corn
 	Both light banks.
 	Node at p is not solid, and the lighting is not face-dependent.
 */
-u16 getSmoothLightTransparent(const v3s16 &p, const v3s16 &corner, MeshMakeData *data)
+std::tuple<u16, u16> getSmoothLightTransparent(const v3s16 &p, const v3s16 &corner, MeshMakeData *data)
 {
 	const std::array<v3s16,8> dirs = {{
 		// Always shine light
@@ -959,6 +964,18 @@ video::SColor encode_light(u16 light, u8 emissive_light)
 	// Average light:
 	float b = (day + night) / 2;
 	return video::SColor(r, b, b, b);
+}
+
+video::SColor encode_light_ao(u16 light, video::SColor light_shading, u8 emissive_light)
+{
+	u32 day = light & 0xff;
+	u32 r;
+	r = day * 255 / 0xff;
+	float ambientOcclusion = day;
+	float commonShading = light_shading.getRed();
+	float shadingBalance = light_shading.getAlpha();
+
+	return video::SColor(shadingBalance, commonShading, ambientOcclusion, ambientOcclusion);
 }
 
 u8 get_solid_sides(MeshMakeData *data)
