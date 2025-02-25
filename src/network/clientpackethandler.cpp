@@ -1795,6 +1795,16 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 
 	if (pkt->getRemainingBytes() >= 4)
 		*pkt >> lighting.shadow_intensity;
+
+	if (pkt->getRemainingBytes() >= 4)
+		*pkt >> lighting.main_shadow_factor;
+	if (pkt->getRemainingBytes() >= 4)
+		*pkt >> lighting.ambient_occlusion_factor;
+	if (pkt->getRemainingBytes() >= 4)
+		*pkt >> lighting.normal_ao_factor;
+	if (pkt->getRemainingBytes() >= 4)
+		*pkt >> lighting.ambient_light_color;
+
 	if (pkt->getRemainingBytes() >= 4)
 		*pkt >> lighting.saturation;
 	if (pkt->getRemainingBytes() >= 24) {
@@ -1807,6 +1817,7 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 	}
 	if (pkt->getRemainingBytes() >= 4)
 		*pkt >> lighting.volumetric_light_strength;
+
 	if (pkt->getRemainingBytes() >= 4)
 		*pkt >> lighting.shadow_tint;
 	if (pkt->getRemainingBytes() >= 12) {
@@ -1814,4 +1825,5 @@ void Client::handleCommand_SetLighting(NetworkPacket *pkt)
 				>> lighting.bloom_strength_factor
 				>> lighting.bloom_radius;
 	}
+
 }

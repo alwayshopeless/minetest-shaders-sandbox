@@ -2642,6 +2642,19 @@ int ObjectRef::l_set_lighting(lua_State *L)
 			lighting.bloom_radius          = getfloatfield_default(L, -1, "radius",          lighting.bloom_radius);
 		}
 		lua_pop(L, 1); // bloom
+
+		lua_getfield(L, 2, "ambient_light");
+		if (lua_istable(L, -1)) {
+			getfloatfield(L, -1, "main_shadow_factor", lighting.main_shadow_factor);
+			getfloatfield(L, -1, "ambient_occlusion_factor", lighting.ambient_occlusion_factor);
+			getfloatfield(L, -1, "normal_ao_factor", lighting.normal_ao_factor);
+
+			lua_getfield(L, -1, "ambient_light_color");
+			read_color(L, -1, &lighting.ambient_light_color);
+			lua_pop(L, 1);
+		}
+		lua_pop(L, 1); // embient light table end
+
 }
 
 	getServer(L)->setLighting(player, lighting);
@@ -2663,9 +2676,9 @@ int ObjectRef::l_get_lighting(lua_State *L)
 	lua_newtable(L); // "shadows"
 	lua_pushnumber(L, lighting.shadow_intensity);
 	lua_setfield(L, -2, "intensity");
+	lua_setfield(L, -2, "shadows");
 	push_ARGB8(L, lighting.shadow_tint);
 	lua_setfield(L, -2, "tint");
-	lua_setfield(L, -2, "shadows");
 	lua_pushnumber(L, lighting.saturation);
 	lua_setfield(L, -2, "saturation");
 	lua_newtable(L); // "exposure"
@@ -2694,6 +2707,19 @@ int ObjectRef::l_get_lighting(lua_State *L)
 	lua_pushnumber(L, lighting.bloom_radius);
 	lua_setfield(L, -2, "radius");
 	lua_setfield(L, -2, "bloom");
+
+	lua_newtable(L); // "ambient_light"
+	lua_pushnumber(L, lighting.main_shadow_factor);
+	lua_setfield(L, -2, "main_shadow_factor");
+	lua_pushnumber(L, lighting.ambient_occlusion_factor);
+	lua_setfield(L, -2, "ambient_occlusion_factor");
+	lua_pushnumber(L, lighting.normal_ao_factor);
+	lua_setfield(L, -2, "normal_ao_factor");
+	push_ARGB8(L, lighting.ambient_light_color);
+	lua_setfield(L, -2, "ambient_light_color");
+	lua_setfield(L, -2, "ambient_light");
+
+
 	return 1;
 }
 

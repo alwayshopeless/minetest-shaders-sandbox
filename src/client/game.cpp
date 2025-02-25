@@ -222,6 +222,12 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	CachedPixelShaderSetting<float> m_bloom_intensity_pixel{"bloomIntensity"};
 	CachedPixelShaderSetting<float> m_bloom_strength_pixel{"bloomStrength"};
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
+
+	CachedPixelShaderSetting<float, 3> m_ambient_light_color_pixel{"ambient_light_color"};
+	CachedPixelShaderSetting<float> m_ambient_occlusion_factor_pixel{"ambient_occlusion_factor"};
+	CachedPixelShaderSetting<float> m_normal_ao_factor_pixel{"normal_ao_factor"};
+	CachedPixelShaderSetting<float> m_main_shadow_factor_pixel{"main_shadow_factor"};
+
 	CachedPixelShaderSetting<float> m_saturation_pixel{"saturation"};
 	bool m_volumetric_light_enabled;
 	CachedPixelShaderSetting<float, 3>
@@ -323,6 +329,20 @@ public:
 			powf(2.f, m_user_exposure_compensation)
 		};
 		m_exposure_params_pixel.set(exposure_buffer.data(), services);
+
+		float main_shadow_factor = lighting.main_shadow_factor;
+		m_main_shadow_factor_pixel.set(&main_shadow_factor, services);
+
+		float ambient_occlusion_factor = lighting.ambient_occlusion_factor;
+		m_ambient_occlusion_factor_pixel.set(&ambient_occlusion_factor, services);
+
+
+		float normal_ao_factor = lighting.normal_ao_factor;
+		m_normal_ao_factor_pixel.set(&normal_ao_factor, services);
+
+		irr::video::SColorf ambient_light_scolorf = irr::video::SColor(lighting.ambient_light_color);
+		m_ambient_light_color_pixel.set(ambient_light_scolorf, services);
+
 
 		if (m_bloom_enabled) {
 			float intensity = std::max(lighting.bloom_intensity, 0.0f);

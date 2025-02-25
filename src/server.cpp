@@ -1928,6 +1928,12 @@ void Server::SendSetLighting(session_t peer_id, const Lighting &lighting)
 			4, peer_id);
 
 	pkt << lighting.shadow_intensity;
+
+	pkt << lighting.main_shadow_factor;
+	pkt << lighting.ambient_occlusion_factor;
+	pkt << lighting.normal_ao_factor;
+	pkt << lighting.ambient_light_color;
+
 	pkt << lighting.saturation;
 
 	pkt << lighting.exposure.luminance_min
@@ -1938,6 +1944,7 @@ void Server::SendSetLighting(session_t peer_id, const Lighting &lighting)
 			<< lighting.exposure.center_weight_power;
 
 	pkt << lighting.volumetric_light_strength << lighting.shadow_tint;
+
 	pkt << lighting.bloom_intensity << lighting.bloom_strength_factor <<
 			lighting.bloom_radius;
 
