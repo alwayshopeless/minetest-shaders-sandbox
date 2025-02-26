@@ -216,35 +216,23 @@ void main(void)
     color.rgb = mainColor.rgb;
     vec3 ambientOcclsionShadow = mix(vec3(1), vec3(shadowColor.r), ambient_occlusion_factor);
 
-//    vec3 commonShadow = clamp(vec3(shadowColor.b), 0, main_shadow_factor);
-    vec3 commonShadow = mix(vec3(1), vec3(shadowColor.b), main_shadow_factor);
+        vec3 commonShadow = clamp(vec3(shadowColor.b), 1 - main_shadow_factor, 1);
+//    vec3 commonShadow = mix(mainColor.rgb, vec3(shadowColor.b), main_shadow_factor);
 
 
     //    color.rgb = mix(color.rgb, vec3(shadowColor.b,shadowColor.b,shadowColor.b), 0.8);
 
     vec3 normalAo = vec3(1.0, 1.0, 1.0);
 
-    //    if (vNormal.y == -1.0) {
-    //        normalAo.rgb -= 0.015 * (1.0 * 20.0);
-    //    }
-    //
-    //    if (vNormal.z != 0) {
-    //        normalAo.rgb -= 0.02 * (0.5 * 30.0);
-    //    }
-    //
-    //    if (vNormal.x != 0) {
-    //        normalAo.rgb -= 0.025 * (0.5 * 30.0);
-    //    }
-
     float northSouthFactor = abs(clamp(vNormal.z, -1.0, 1.0));
     float eastWestFactor = abs(clamp(vNormal.x, -1.0, 1.0));
-    normalAo.rgb -= 0.04 * (northSouthFactor * 10.0);
-    normalAo.rgb -= 0.029 * (eastWestFactor * 10.0);
+    normalAo.rgb -= 0.02 * (northSouthFactor * 15.0);
+    normalAo.rgb -= 0.029 * (eastWestFactor * 15.0);
 
-    if (true) {
-        color.rgb *= normalAo.rgb;
-    }
+    normalAo = mix(vec3(1), vec3(normalAo.rgb), normal_ao_factor);
+
     color.rgb *= ambientOcclsionShadow * commonShadow;
+    color.rgb *= normalAo.rgb;
 
     //        color.rgb = inVertexAmbientColor.rgb;
 
@@ -264,8 +252,8 @@ void main(void)
     if (ambient_light_color.r + ambient_light_color.g + ambient_light_color.b != 0) {
         dayLight2 = ambient_light_color.rgb;
         artificialLight2 = ambient_light_color.rgb;
+        artificialLight2 *= 2;
     }
-
     //default 2
     float colorBalanceFactor = 2.0;
     color.rgb = color.rgb * (shadowColor.a * dayLight2.rgb +

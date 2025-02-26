@@ -135,8 +135,6 @@ void MapblockMeshGenerator::drawQuad(const TileSpec &tile, v3f *coords, const v3
 			vertices[j].Color = cur_node.lcolor;
 		}
 
-		if (shade_face)
-			applyFacesShading(vertices[j].Color, normal2);
 		vertices[j].TCoords = tcoords[j];
 	}
 	collector->append(tile, vertices, 4, quad_indices, 6);
@@ -303,8 +301,6 @@ video::SColor MapblockMeshGenerator::blendLightColor(const v3f &vertex_pos,
 	LightInfo light = blendLight(vertex_pos);
 	video::SColor color = encode_light(light.getPair(MYMAX(0.0f, vertex_normal.Y)),
 			cur_node.f->light_source);
-	if (!cur_node.f->light_source)
-		applyFacesShading(color, vertex_normal);
 	return color;
 }
 
@@ -383,8 +379,6 @@ void MapblockMeshGenerator::drawAutoLightedCuboid(aabb3f box,
 				vertex.Color = 0xFFFFFFFF;
 				video::SColor tempCol = encode_light(final_lights[j], cur_node.f->light_source);
 				vertex.AmbientColor =  encode_light_ao(0xff, tempCol, 0xff);
-				if (!cur_node.f->light_source)
-					applyFacesShading(vertex.Color, vertex.Normal);
 			}
 			if (lightDiff(final_lights[1], final_lights[3]) < lightDiff(final_lights[0], final_lights[2]))
 				return QuadDiagonal::Diag13;
@@ -490,21 +484,9 @@ void MapblockMeshGenerator::drawSolidNode()
 			auto final_lights_ao = lights_ao[face];
 			for (int j = 0; j < 4; j++) {
 				video::S3DVertex &vertex = vertices[j];
-//				vertex.Color = encode_light(final_lights[j], cur_node.f->light_source);
-
-//				vertex.Color = encode_light_ao(SColorToA1R5G5B5(cur_node.lcolor), 0xff, 255);
-//				vertex.Color = SColorToA1R5G5B5(cur_node.lcolor);
-
-
-//				float tCol = tempCol.getRed();
-//				vertex.Color = cur_node.lcolor;
-//				vertex.AmbientColor = encode_light_ao(final_lights_ao[j], tCol, cur_node.f->light_source);
 				vertex.Color = 0xFFFFFFFF;
 				video::SColor tempCol = encode_light(final_lights[j], cur_node.f->light_source);
 				vertex.AmbientColor =  encode_light_ao(final_lights_ao[j], tempCol, cur_node.f->light_source);
-//				vertex.AmbientColor = tempCol;
-//				if (!cur_node.f->light_source)
-//					applyFacesShading(vertex.Color, vertex.Normal);
 			}
 			if (lightDiff(final_lights[1], final_lights[3]) < lightDiff(final_lights[0], final_lights[2]))
 				if (lightDiff(final_lights_ao[1], final_lights_ao[3]) < lightDiff(final_lights_ao[0], final_lights_ao[2]))

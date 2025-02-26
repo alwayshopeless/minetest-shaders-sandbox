@@ -8,6 +8,7 @@ varying vec4 mainColor;
 
 uniform float main_shadow_factor;
 uniform float ambient_occlusion_factor;
+uniform float normal_ao_factor;
 uniform vec4 ambient_light_color;
 
 varying vec3 vNormal;
@@ -126,6 +127,8 @@ void main(void)
 
 	normalAo.rgb -= 0.02 * (northSouthFactor * 10.0);
 	normalAo.rgb -= 0.025 * (eastWestFactor * 10.0);
+	normalAo = mix(vec3(1), vec3(normalAo.rgb), normal_ao_factor);
+
 
 	shadowColor = inVertexAmbientColor;
 	// a - light balance
