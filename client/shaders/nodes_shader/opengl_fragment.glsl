@@ -4,6 +4,7 @@ uniform vec3 dayLight;
 uniform lowp vec4 fogColor;
 uniform float fogDistance;
 uniform float fogShadingParameter;
+uniform vec4 ambient_light_color;
 
 // The cameraOffset is the current center of the visible world.
 uniform highp vec3 cameraOffset;
@@ -574,6 +575,7 @@ void main(void)
     //	col.rgb = vec3(shadowColor.a,shadowColor.a,shadowColor.a);
     //	col.rgb = vec3(shadowColor.a * 2.5,shadowColor.a * 2.5,shadowColor.a * 2.5);
     	gl_FragData[0] = col;
+//    	gl_FragData[0] = ambient_light_color.rgba;
 //    float alphaC = shadowColor.a;
 ////    if (alphaC > 0.4) {
 ////        alphaC = 1.0;

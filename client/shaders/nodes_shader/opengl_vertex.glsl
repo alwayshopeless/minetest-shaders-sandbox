@@ -2,6 +2,11 @@ uniform mat4 mWorld;
 // Color of the light emitted by the sun.
 uniform vec3 dayLight;
 
+uniform float main_shadow_factor;
+uniform float ambient_occlusion_factor;
+uniform float normal_ao_factor;
+uniform vec4 ambient_light_color;
+
 // The cameraOffset is the current center of the visible world.
 uniform highp vec3 cameraOffset;
 uniform float animationTimer;
@@ -206,9 +211,15 @@ void main(void)
     shadowColor = inVertexAmbientColor;
     // a - light balance
     // r - ambeint occlusion
-    // g - common shadow
+    // b - common shadow
     mainColor = inVertexColor;
-    color.rgb = mainColor.rgb * shadowColor.r * shadowColor.b;
+    color.rgb = mainColor.rgb;
+    vec3 ambientOcclsionShadow = mix(vec3(1), vec3(shadowColor.r), ambient_occlusion_factor);
+
+//    vec3 commonShadow = clamp(vec3(shadowColor.b), 0, main_shadow_factor);
+    vec3 commonShadow = mix(vec3(1), vec3(shadowColor.b), main_shadow_factor);
+
+
     //    color.rgb = mix(color.rgb, vec3(shadowColor.b,shadowColor.b,shadowColor.b), 0.8);
 
     vec3 normalAo = vec3(1.0, 1.0, 1.0);
@@ -225,15 +236,15 @@ void main(void)
     //        normalAo.rgb -= 0.025 * (0.5 * 30.0);
     //    }
 
-    float northSouthFactor = clamp(vNormal.z, -1.0, 1.0);
-    float eastWestFactor = clamp(vNormal.x, -1.0, 1.0);
-    normalAo.rgb -= 0.02 * (northSouthFactor * 10.0);
-    normalAo.rgb -= 0.025 * (eastWestFactor * 10.0);
+    float northSouthFactor = abs(clamp(vNormal.z, -1.0, 1.0));
+    float eastWestFactor = abs(clamp(vNormal.x, -1.0, 1.0));
+    normalAo.rgb -= 0.04 * (northSouthFactor * 10.0);
+    normalAo.rgb -= 0.029 * (eastWestFactor * 10.0);
 
     if (true) {
         color.rgb *= normalAo.rgb;
     }
-
+    color.rgb *= ambientOcclsionShadow * commonShadow;
 
     //        color.rgb = inVertexAmbientColor.rgb;
 
@@ -247,11 +258,18 @@ void main(void)
     // The alpha gives the ratio of sunlight in the incoming light.
     nightRatio = 1.0 - shadowColor.a;
 
-    //    vec3 dayLight2 = vec3(1.0, 1.0, 1.0);
+    //        vec3 dayLight2 = vec3(1.0, 1.0, 1.0);
     vec3 dayLight2 = dayLight.rgb;
+    vec3 artificialLight2 = artificialLight.rgb;
+    if (ambient_light_color.r + ambient_light_color.g + ambient_light_color.b != 0) {
+        dayLight2 = ambient_light_color.rgb;
+        artificialLight2 = ambient_light_color.rgb;
+    }
 
+    //default 2
+    float colorBalanceFactor = 2.0;
     color.rgb = color.rgb * (shadowColor.a * dayLight2.rgb +
-    nightRatio * artificialLight.rgb) * 2.0;
+    nightRatio * artificialLight2.rgb) * colorBalanceFactor;
     color.a = 1.0;
     //    nightRatio = 1.0 - shadowColor.a;
     //    color.rgb = color.rgb * (shadowColor.a * dayLight.rgb +

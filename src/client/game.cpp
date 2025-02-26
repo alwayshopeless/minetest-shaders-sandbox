@@ -223,7 +223,7 @@ class GameGlobalShaderConstantSetter : public IShaderConstantSetter
 	CachedPixelShaderSetting<float> m_bloom_strength_pixel{"bloomStrength"};
 	CachedPixelShaderSetting<float> m_bloom_radius_pixel{"bloomRadius"};
 
-	CachedPixelShaderSetting<float, 3> m_ambient_light_color_pixel{"ambient_light_color"};
+	CachedPixelShaderSetting<float, 4> m_ambient_light_color_pixel{"ambient_light_color"};
 	CachedPixelShaderSetting<float> m_ambient_occlusion_factor_pixel{"ambient_occlusion_factor"};
 	CachedPixelShaderSetting<float> m_normal_ao_factor_pixel{"normal_ao_factor"};
 	CachedPixelShaderSetting<float> m_main_shadow_factor_pixel{"main_shadow_factor"};

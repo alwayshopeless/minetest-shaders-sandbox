@@ -5,6 +5,11 @@ uniform lowp vec4 fogColor;
 uniform float fogDistance;
 uniform float fogShadingParameter;
 
+varying vec4 shadowColor;
+varying vec4 mainColor;
+uniform lowp vec4 materialColor;
+
+
 // The cameraOffset is the current center of the visible world.
 uniform highp vec3 cameraOffset;
 uniform float animationTimer;

@@ -3,6 +3,13 @@ uniform vec3 dayLight;
 uniform float animationTimer;
 uniform lowp vec4 materialColor;
 
+varying vec4 shadowColor;
+varying vec4 mainColor;
+
+uniform float main_shadow_factor;
+uniform float ambient_occlusion_factor;
+uniform vec4 ambient_light_color;
+
 varying vec3 vNormal;
 varying vec3 vPosition;
 varying vec3 worldPosition;
@@ -113,24 +120,42 @@ void main(void)
 
 	vec3 normalAo = vec3(1.0, 1.0, 1.0);
 
-	// Определяем направление относительно оси Y (север/юг)
 	float northSouthFactor = clamp(vNormal.z, -1.0, 1.0);
-	// Определяем направление относительно оси X (восток/запад)
 	float eastWestFactor = clamp(vNormal.x, -1.0, 1.0);
 
-	// Корректируем затемнение в зависимости от направления
-	normalAo.rgb -= 0.02 * (northSouthFactor * 10.0); // Север-Юг
-	normalAo.rgb -= 0.025 * (eastWestFactor * 10.0);  // Восток-Запад
 
-	// Применяем затемнение
+	normalAo.rgb -= 0.02 * (northSouthFactor * 10.0);
+	normalAo.rgb -= 0.025 * (eastWestFactor * 10.0);
+
+	shadowColor = inVertexAmbientColor;
+	// a - light balance
+	// r - ambeint occlusion
+	// b - common shadow
+	mainColor = inVertexColor;
+
+//	vec3 commonShadow = clamp(vec3(materialColor.rgb), main_shadow_factor, 1);
+	vec3 commonShadow = mix(vec3(1), vec3(materialColor.rgb), main_shadow_factor);
+
 	color.rgb *= normalAo.rgb;
 
-	color *= materialColor;
 
-	// The alpha gives the ratio of sunlight in the incoming light.
+	color.rgb *= commonShadow.rgb;
+
 	nightRatio = 1.0 - color.a;
-	color.rgb = color.rgb * (color.a * dayLight.rgb +
-		nightRatio * artificialLight.rgb) * 2.0;
+
+	//        vec3 dayLight2 = vec3(1.0, 1.0, 1.0);
+	vec3 dayLight2 = dayLight.rgb;
+	vec3 artificialLight2 = artificialLight.rgb;
+	if (ambient_light_color.r + ambient_light_color.g + ambient_light_color.b != 0) {
+		dayLight2 = ambient_light_color.rgb;
+		artificialLight2 = ambient_light_color.rgb;
+	}
+
+	//default 2
+	// where u got this number?
+	float colorBalanceFactor = 4.0 - main_shadow_factor;
+	color.rgb = color.rgb * (shadowColor.a * dayLight2.rgb +
+	nightRatio * artificialLight2.rgb) * colorBalanceFactor;
 	color.a = 1.0;
 
 	// Emphase blue a bit in darker places

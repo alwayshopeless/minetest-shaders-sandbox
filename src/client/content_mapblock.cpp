@@ -125,10 +125,16 @@ void MapblockMeshGenerator::drawQuad(const TileSpec &tile, v3f *coords, const v3
 	for (int j = 0; j < 4; j++) {
 		vertices[j].Pos = coords[j] + cur_node.origin;
 		vertices[j].Normal = normal2;
-		if (data->m_smooth_lighting)
-			vertices[j].Color = blendLightColor(coords[j]);
-		else
+		if (data->m_smooth_lighting){
+//			vertices[j].Color = blendLightColor(coords[j]);
+			LightInfo lightTemp = blendLight(coords[j]);
+			vertices[j].Color = 0xFFFFFFFF;
+				video::SColor tempCol = encode_light(lightTemp.getPair(), cur_node.f->light_source);
+				vertices[j].AmbientColor =  encode_light_ao(0xff, tempCol, 0xff);
+		} else {
 			vertices[j].Color = cur_node.lcolor;
+		}
+
 		if (shade_face)
 			applyFacesShading(vertices[j].Color, normal2);
 		vertices[j].TCoords = tcoords[j];
@@ -333,6 +339,7 @@ void MapblockMeshGenerator::drawAutoLightedCuboid(aabb3f box, const TileSpec &ti
 	drawAutoLightedCuboid(box, &tile, 1, txc, mask);
 }
 
+// Looks like stairs and other neordinary blocks shading. STAIRS SHADING
 void MapblockMeshGenerator::drawAutoLightedCuboid(aabb3f box,
 		const TileSpec *tiles, int tile_count, const f32 *txc, u8 mask)
 {
@@ -373,7 +380,9 @@ void MapblockMeshGenerator::drawAutoLightedCuboid(aabb3f box,
 			for (int j = 0; j < 4; j++) {
 				video::S3DVertex &vertex = vertices[j];
 				final_lights[j] = lights[light_indices[face][j]].getPair(MYMAX(0.0f, vertex.Normal.Y));
-				vertex.Color = encode_light(final_lights[j], cur_node.f->light_source);
+				vertex.Color = 0xFFFFFFFF;
+				video::SColor tempCol = encode_light(final_lights[j], cur_node.f->light_source);
+				vertex.AmbientColor =  encode_light_ao(0xff, tempCol, 0xff);
 				if (!cur_node.f->light_source)
 					applyFacesShading(vertex.Color, vertex.Normal);
 			}
@@ -485,12 +494,12 @@ void MapblockMeshGenerator::drawSolidNode()
 
 //				vertex.Color = encode_light_ao(SColorToA1R5G5B5(cur_node.lcolor), 0xff, 255);
 //				vertex.Color = SColorToA1R5G5B5(cur_node.lcolor);
-				vertex.Color = 0xFFFFFFFF;
 
 
 //				float tCol = tempCol.getRed();
 //				vertex.Color = cur_node.lcolor;
 //				vertex.AmbientColor = encode_light_ao(final_lights_ao[j], tCol, cur_node.f->light_source);
+				vertex.Color = 0xFFFFFFFF;
 				video::SColor tempCol = encode_light(final_lights[j], cur_node.f->light_source);
 				vertex.AmbientColor =  encode_light_ao(final_lights_ao[j], tempCol, cur_node.f->light_source);
 //				vertex.AmbientColor = tempCol;
@@ -732,17 +741,23 @@ void MapblockMeshGenerator::drawLiquidSides()
 			}
 
 			video::SColor color;
-			if (data->m_smooth_lighting)
-				color = blendLightColor(pos);
-			else
+			video::SColor ambientColor;
+			if (data->m_smooth_lighting){
+//				color = blendLightColor(pos);
+				color = 0xFFFFFFFF;
+				LightInfo templight = blendLight(pos);
+				video::SColor tempCol = encode_light(templight.getPair(), cur_node.f->light_source);;
+				ambientColor =  encode_light_ao(0xff, tempCol, 0xff);
+			} else{
 				color = cur_node.lcolor;
+			}
 
 			pos += cur_node.origin;
-
 			vertices[j] = video::S3DVertex(pos.X, pos.Y, pos.Z,
 					face.dir.X, face.dir.Y, face.dir.Z,
 					color,
 					vertex.u, v);
+            vertices[j].AmbientColor = ambientColor;
 		};
 		collector->append(cur_liquid.tile, vertices, 4, quad_indices, 6);
 	}
@@ -779,8 +794,13 @@ void MapblockMeshGenerator::drawLiquidTop()
 		}
 
 		vertices[i].Pos.Y += cur_liquid.corner_levels[w][u] * BS;
-		if (data->m_smooth_lighting)
-			vertices[i].Color = blendLightColor(vertices[i].Pos);
+		if (data->m_smooth_lighting){
+//			vertices[i].Color = blendLightColor(vertices[i].Pos);
+			vertices[i].Color = 0xffffffff;
+			LightInfo templight = blendLight(vertices[i].Pos);
+			video::SColor tempCol = encode_light(templight.getPair(), cur_node.f->light_source);;
+			vertices[i].AmbientColor =  encode_light_ao(0xff, tempCol, 0xff);
+		}
 		vertices[i].Pos += cur_node.origin;
 	}
 
@@ -1739,7 +1759,12 @@ void MapblockMeshGenerator::drawMeshNode()
 		if (data->m_smooth_lighting) {
 			for (u32 k = 0; k < vertex_count; k++) {
 				video::S3DVertex &vertex = vertices[k];
-				vertex.Color = blendLightColor(vertex.Pos, vertex.Normal);
+//				vertex.Color = blendLightColor(vertex.Pos, vertex.Normal);
+				vertex.Color = 0xFFFFFFFF;
+				LightInfo tempLight = blendLight(vertex.Pos);
+				video::SColor color = encode_light(tempLight.getPair(MYMAX(0.0f, vertex.Normal.Y)), cur_node.f->light_source);
+				vertex.AmbientColor = encode_light_ao(0xff, color, 0xff);
+
 				vertex.Pos += cur_node.origin;
 			}
 		} else {
