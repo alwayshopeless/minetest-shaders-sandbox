@@ -786,9 +786,9 @@ ShaderInfo ShaderSource::generateShader(const std::string &name,
 	if (shadermat == -1) {
 		errorstream << "generateShader(): failed to generate shaders for "
 			<< log_name << ", addHighLevelShaderMaterial failed." << std::endl;
-		dumpShaderProgram(warningstream, "Vertex", vertex_shader);
-		dumpShaderProgram(warningstream, "Fragment", fragment_shader);
-		dumpShaderProgram(warningstream, "Geometry", geometry_shader);
+//		dumpShaderProgram(warningstream, "Vertex", vertex_shader);
+//		dumpShaderProgram(warningstream, "Fragment", fragment_shader);
+//		dumpShaderProgram(warningstream, "Geometry", geometry_shader);
 		throw ShaderException(
 			fmtgettext("Failed to compile the \"%s\" shader.", name.c_str()) +
 			strgettext("\nCheck debug.txt for details."));

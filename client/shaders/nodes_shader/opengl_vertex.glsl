@@ -214,9 +214,9 @@ void main(void)
     // b - common shadow
     mainColor = inVertexColor;
     color.rgb = mainColor.rgb;
-    vec3 ambientOcclsionShadow = mix(vec3(1), vec3(shadowColor.r), ambient_occlusion_factor);
+    vec3 ambientOcclsionShadow = mix(vec3(1.0), vec3(shadowColor.r), ambient_occlusion_factor);
 
-        vec3 commonShadow = clamp(vec3(shadowColor.b), 1 - main_shadow_factor, 1);
+        vec3 commonShadow = clamp(vec3(shadowColor.b), 1.0 - main_shadow_factor, 1.0);
 //    vec3 commonShadow = mix(mainColor.rgb, vec3(shadowColor.b), main_shadow_factor);
 
 
@@ -249,10 +249,10 @@ void main(void)
     //        vec3 dayLight2 = vec3(1.0, 1.0, 1.0);
     vec3 dayLight2 = dayLight.rgb;
     vec3 artificialLight2 = artificialLight.rgb;
-    if (ambient_light_color.r + ambient_light_color.g + ambient_light_color.b != 0) {
+    if (ambient_light_color.r + ambient_light_color.g + ambient_light_color.b != 0.0) {
         dayLight2 = ambient_light_color.rgb;
         artificialLight2 = ambient_light_color.rgb;
-        artificialLight2 *= 2;
+        artificialLight2 *= 2.0;
     }
     //default 2
     float colorBalanceFactor = 2.0;
